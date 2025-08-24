@@ -48,10 +48,14 @@ brew install --cask font-hack-nerd-font
 Once installed, creating presentations is simple:
 
 ```bash
-# Basic usage (enhanced styling included automatically)
+# Basic usage with default Frankfurt theme
 make_deck presentation.md presentation.pdf
 
-# Get help
+# Use a specific beamer theme
+make_deck presentation.md presentation.pdf --theme Copenhagen
+make_deck presentation.md presentation.pdf --theme Madrid
+
+# Get help and see all available themes
 make_deck --help
 ```
 
@@ -150,13 +154,13 @@ Right content here.
 
 ### Custom Styling
 
-Enhanced styling is included automatically with:
+Uses built-in beamer themes with:
 
-- Professional color schemes
-- Frame numbers in footer
-- Enhanced navigation design
-- Better code syntax highlighting
-- Modern typography and layout
+- 27 available professional themes
+- Command-line theme selection
+- Clean, standard beamer styling
+- Consistent typography and layout
+- Flexible visual customization
 
 ### Themes and Customization
 

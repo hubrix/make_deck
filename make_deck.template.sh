@@ -17,26 +17,34 @@ command_exists() {
 create_template() {
     local temp_dir="$1"
     
-    # Create the merged template with integrated styling
-    cat > "$temp_dir/merged_template.latex" << 'TEMPLATE_EOF'
-__MERGED_TEMPLATE_CONTENT__
+    # Create the simple beamer template
+    cat > "$temp_dir/simple_beamer.latex" << 'TEMPLATE_EOF'
+__SIMPLE_BEAMER_CONTENT__
 TEMPLATE_EOF
 }
 
 # Function to show usage
 show_usage() {
     cat << EOF
-Usage: make_deck input.md output.pdf
+Usage: make_deck input.md output.pdf [--theme THEME]
 
-A portable pandoc beamer presentation generator with enhanced styling.
+A portable pandoc beamer presentation generator.
 
 Arguments:
   input.md     Input Markdown file
   output.pdf   Output PDF file
+  --theme      Beamer theme name (optional, default: Frankfurt)
+
+Available themes:
+  AnnArbor, Antibes, Bergen, Berkeley, Berlin, Boadilla, CambridgeUS,
+  Copenhagen, Darmstadt, Dresden, Frankfurt, Goettingen, Hannover,
+  Ilmenau, JuanLesPins, Luebeck, Madrid, Malmoe, Marburg, Montpellier,
+  PaloAlto, Pittsburgh, Rochester, Singapore, Szeged, Warsaw, boxes, default
 
 Examples:
   make_deck presentation.md presentation.pdf
-  make_deck slides.md slides.pdf
+  make_deck slides.md slides.pdf --theme Copenhagen
+  make_deck slides.md slides.pdf --theme Madrid
 
 Requirements:
   - pandoc
@@ -51,7 +59,7 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 fi
 
 # Validate arguments
-if [ $# -ne 2 ]; then
+if [ $# -lt 2 ] || [ $# -gt 4 ]; then
     echo "Error: Invalid number of arguments." >&2
     show_usage >&2
     exit 1
@@ -59,6 +67,18 @@ fi
 
 INPUT_FILE="$1"
 OUTPUT_FILE="$2"
+THEME="Frankfurt"  # Default theme
+
+# Parse optional theme argument
+if [ $# -eq 4 ]; then
+    if [ "$3" = "--theme" ]; then
+        THEME="$4"
+    else
+        echo "Error: Unknown option '$3'" >&2
+        show_usage >&2
+        exit 1
+    fi
+fi
 
 # Validate input file
 if [ ! -f "$INPUT_FILE" ]; then
@@ -110,11 +130,12 @@ PANDOC_CMD=(
     --toc
     --listings
     --shift-heading-level=0
-    --template "$TEMP_DIR/merged_template.latex"
+    --template "$TEMP_DIR/simple_beamer.latex"
     --pdf-engine "$PDF_ENGINE"
     -f "$SOURCE_FORMAT"
     -M "date=$DATE_COVER"
     -V classoption:aspectratio=169
+    -V theme="$THEME"
     --highlight-style=tango
     -t beamer
     "$INPUT_FILE"

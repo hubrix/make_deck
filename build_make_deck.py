@@ -12,12 +12,12 @@ def main():
     with open('make_deck.template.sh', 'r') as f:
         template_content = f.read()
     
-    # Read the merged LaTeX template
-    with open('pandoc/templates/merged_template.latex', 'r') as f:
-        merged_template = f.read()
+    # Read the simple beamer LaTeX template
+    with open('pandoc/templates/simple_beamer.latex', 'r') as f:
+        simple_template = f.read()
     
     # Replace placeholder
-    result = template_content.replace('__MERGED_TEMPLATE_CONTENT__', merged_template)
+    result = template_content.replace('__SIMPLE_BEAMER_CONTENT__', simple_template)
     
     # Write to make_deck
     with open('make_deck.new', 'w') as f:
