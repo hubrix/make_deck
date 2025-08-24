@@ -83,11 +83,11 @@ $endif$
 
 %% Block styling for better content presentation
 \setbeamercolor{block title}{bg=primary,fg=white}
-\setbeamercolor{block body}{bg=light,fg=dark}
+\setbeamercolor{block body}{bg=secondary,fg=white}
 \setbeamercolor{block title alerted}{bg=accent,fg=white}
-\setbeamercolor{block body alerted}{bg=light,fg=dark}
+\setbeamercolor{block body alerted}{bg=secondary,fg=white}
 \setbeamercolor{block title example}{bg=secondary,fg=white}
-\setbeamercolor{block body example}{bg=light,fg=dark}
+\setbeamercolor{block body example}{bg=secondary,fg=white}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% Create professional frame numbers in footer
