@@ -1,31 +1,41 @@
-%%%%%%%%%%%%%color 
-\definecolor{UBCblue}{rgb}{0.04706, 0.13725, 0.26667} % UBC Blue (primary)
-\definecolor{UBCgrey}{rgb}{0.3686, 0.5255, 0.6235} % UBC Grey (secondary)
+%%%%%%%%%%%%% Modern Professional Color Scheme
+\definecolor{primary}{RGB}{41, 128, 185}     % Professional blue
+\definecolor{secondary}{RGB}{52, 73, 94}     % Dark blue-gray
+\definecolor{accent}{RGB}{230, 126, 34}      % Warm orange accent
+\definecolor{light}{RGB}{236, 240, 241}      % Light gray
+\definecolor{dark}{RGB}{44, 62, 80}          % Dark text
 
-\definecolor{orange}{RGB}{244,167,66}
+\setbeamercolor{palette primary}{bg=primary,fg=white}
+\setbeamercolor{palette secondary}{bg=secondary,fg=white}
+\setbeamercolor{palette tertiary}{bg=primary,fg=white}
+\setbeamercolor{palette quaternary}{bg=secondary,fg=white}
+\setbeamercolor{structure}{fg=primary}        % itemize, enumerate, etc
+\setbeamercolor{section in toc}{fg=primary}   % TOC sections
 
-\setbeamercolor{palette primary}{bg=UBCblue,fg=white}
-\setbeamercolor{palette secondary}{bg=UBCblue,fg=white}
-\setbeamercolor{palette tertiary}{bg=UBCblue,fg=white}
-\setbeamercolor{palette quaternary}{bg=UBCblue,fg=white}
-\setbeamercolor{structure}{fg=UBCblue} % itemize, enumerate, etc
-\setbeamercolor{section in toc}{fg=UBCblue} % TOC sections
+%% Enhanced miniframes and navigation styling
+\setbeamercolor{mini frame}{fg=accent, bg=primary}
+\setbeamercolor{mini frame current}{fg=white, bg=accent}
 
-%% change circle miniframes color
-\setbeamercolor{mini frame}{fg=orange, bg=UBCblue}
+%% Footer styling with professional colors
+\setbeamercolor{subsection in head/foot}{bg=secondary,fg=white}
+\setbeamercolor{author in head/foot}{bg=light,fg=dark}
+\setbeamercolor{title in head/foot}{bg=light,fg=primary}
 
-%% Change subsection in footer color (author and institute color)
-\setbeamercolor{subsection in head/foot}{bg=UBCgrey,fg=white}
+%% Navigation and section styling
+\setbeamercolor{section in head/foot}{fg=accent}
+\setbeamercolor{frametitle}{bg=primary,fg=white}
+\setbeamercolor{framesubtitle}{bg=secondary,fg=white}
 
-%change ilmenau section dot color 
-\setbeamercolor{section in head/foot}{fg=orange} 
-
-%% Change the circle in miniframes to a box
-%\setbeamertemplate{mini frame}[box]
-%\setbeamertemplate{mini frame in current subsection}[box]
+%% Block styling for better content presentation
+\setbeamercolor{block title}{bg=primary,fg=white}
+\setbeamercolor{block body}{bg=light,fg=dark}
+\setbeamercolor{block title alerted}{bg=accent,fg=white}
+\setbeamercolor{block body alerted}{bg=light,fg=dark}
+\setbeamercolor{block title example}{bg=secondary,fg=white}
+\setbeamercolor{block body example}{bg=light,fg=dark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% Create framenumber in footer
+%%%% Create professional frame numbers in footer
 \newcommand{\frameofframes}{/}
 \newcommand{\setframeofframes}[1]{\renewcommand{\frameofframes}{#1}}
 
@@ -50,8 +60,9 @@
     \begin{beamercolorbox}[colsep=1.5pt]{lower separation line foot}
     \end{beamercolorbox}
   }
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Remove subsection bar in mini frames
+%%% Clean navigation header - remove subsection bar
 \defbeamertemplate*{headline}{miniframes theme no subsection}
 {%
   \begin{beamercolorbox}[colsep=1.5pt]{upper separation line head}
@@ -64,5 +75,13 @@
 }
 
 \setbeamertemplate{footline}[miniframes theme no subsection]
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Enhanced typography and spacing
+\setbeamerfont{title}{size=\Large,series=\bfseries}
+\setbeamerfont{subtitle}{size=\normalsize}
+\setbeamerfont{author}{size=\normalsize}
+\setbeamerfont{institute}{size=\small}
+\setbeamerfont{frametitle}{size=\large,series=\bfseries}
+\setbeamerfont{framesubtitle}{size=\normalsize}
+
 \makeatother

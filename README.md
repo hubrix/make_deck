@@ -48,11 +48,8 @@ brew install --cask font-hack-nerd-font
 Once installed, creating presentations is simple:
 
 ```bash
-# Basic usage
+# Basic usage (enhanced styling included automatically)
 make_deck presentation.md presentation.pdf
-
-# With enhanced styling (uses preamble.tex)
-make_deck presentation.md presentation.pdf --preamble
 
 # Get help
 make_deck --help
@@ -65,7 +62,7 @@ You can also use the provided Makefile:
 ```bash
 make check      # verify pandoc and a TeX engine exist
 make build      # generate presentation.pdf
-make preamble   # generate presentation_nice_formatting.pdf with enhanced styling
+make build      # generate presentation.pdf (same as above)
 make open       # open the generated PDF
 ```
 
@@ -153,14 +150,13 @@ Right content here.
 
 ### Custom Styling
 
-The repository includes enhanced styling via `preamble.tex`:
+Enhanced styling is included automatically with:
 
-- Custom color schemes
-- Frame numbers
-- Enhanced footer design
+- Professional color schemes
+- Frame numbers in footer
+- Enhanced navigation design
 - Better code syntax highlighting
-
-Use `--preamble` flag or `make preamble` to apply enhanced styling.
+- Modern typography and layout
 
 ### Themes and Customization
 

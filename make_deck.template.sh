@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # make_deck - A truly standalone pandoc beamer presentation generator
-# Usage: make_deck input.md output.pdf [--preamble]
+# Usage: make_deck input.md output.pdf
 
 set -e
 
@@ -31,18 +31,17 @@ PREAMBLE_EOF
 # Function to show usage
 show_usage() {
     cat << EOF
-Usage: make_deck input.md output.pdf [--preamble]
+Usage: make_deck input.md output.pdf
 
-A portable pandoc beamer presentation generator.
+A portable pandoc beamer presentation generator with enhanced styling.
 
 Arguments:
   input.md     Input Markdown file
   output.pdf   Output PDF file
-  --preamble   Use enhanced styling with preamble.tex
 
 Examples:
   make_deck presentation.md presentation.pdf
-  make_deck slides.md slides.pdf --preamble
+  make_deck slides.md slides.pdf
 
 Requirements:
   - pandoc
@@ -57,7 +56,7 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 fi
 
 # Validate arguments
-if [ $# -lt 2 ] || [ $# -gt 3 ]; then
+if [ $# -ne 2 ]; then
     echo "Error: Invalid number of arguments." >&2
     show_usage >&2
     exit 1
@@ -65,17 +64,6 @@ fi
 
 INPUT_FILE="$1"
 OUTPUT_FILE="$2"
-USE_PREAMBLE=false
-
-if [ $# -eq 3 ]; then
-    if [ "$3" = "--preamble" ]; then
-        USE_PREAMBLE=true
-    else
-        echo "Error: Unknown option '$3'" >&2
-        show_usage >&2
-        exit 1
-    fi
-fi
 
 # Validate input file
 if [ ! -f "$INPUT_FILE" ]; then
@@ -138,10 +126,8 @@ PANDOC_CMD=(
     -o "$OUTPUT_FILE"
 )
 
-# Add preamble if requested
-if [ "$USE_PREAMBLE" = true ]; then
-    PANDOC_CMD+=(-H "$TEMP_DIR/preamble.tex")
-fi
+# Always use enhanced preamble styling
+PANDOC_CMD+=(-H "$TEMP_DIR/preamble.tex")
 
 # Execute pandoc command
 echo "Generating PDF: $OUTPUT_FILE"
