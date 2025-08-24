@@ -78,12 +78,7 @@ $endif$
 \setbeamercolor{frametitle}{bg=primary,fg=white}
 \setbeamercolor{framesubtitle}{bg=secondary,fg=white}
 
-%% Title slide styling - fix title color to white
-\setbeamercolor{title}{fg=white}
-\setbeamercolor{subtitle}{fg=white}
-\setbeamercolor{author}{fg=white}
-\setbeamercolor{institute}{fg=white}
-\setbeamercolor{date}{fg=white}
+%% Title slide styling - use default colors
 
 %% Block styling for better content presentation
 \setbeamercolor{block title}{bg=primary,fg=white}
