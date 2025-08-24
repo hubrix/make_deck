@@ -12,17 +12,12 @@ def main():
     with open('make_deck.template.sh', 'r') as f:
         template_content = f.read()
     
-    # Read the LaTeX template
-    with open('pandoc/templates/default_mod.latex', 'r') as f:
-        latex_template = f.read()
+    # Read the merged LaTeX template
+    with open('pandoc/templates/merged_template.latex', 'r') as f:
+        merged_template = f.read()
     
-    # Read the preamble
-    with open('pandoc/templates/preamble.tex', 'r') as f:
-        preamble_content = f.read()
-    
-    # Replace placeholders
-    result = template_content.replace('__DEFAULT_MOD_LATEX_CONTENT__', latex_template)
-    result = result.replace('__PREAMBLE_TEX_CONTENT__', preamble_content)
+    # Replace placeholder
+    result = template_content.replace('__MERGED_TEMPLATE_CONTENT__', merged_template)
     
     # Write to make_deck
     with open('make_deck.new', 'w') as f:

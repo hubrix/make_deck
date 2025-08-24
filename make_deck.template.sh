@@ -13,19 +13,14 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-# Function to create embedded template files
-create_templates() {
+# Function to create embedded template file
+create_template() {
     local temp_dir="$1"
     
-    # Create the default_mod.latex template
-    cat > "$temp_dir/default_mod.latex" << 'TEMPLATE_EOF'
-__DEFAULT_MOD_LATEX_CONTENT__
+    # Create the merged template with integrated styling
+    cat > "$temp_dir/merged_template.latex" << 'TEMPLATE_EOF'
+__MERGED_TEMPLATE_CONTENT__
 TEMPLATE_EOF
-
-    # Create the preamble.tex file
-    cat > "$temp_dir/preamble.tex" << 'PREAMBLE_EOF'
-__PREAMBLE_TEX_CONTENT__
-PREAMBLE_EOF
 }
 
 # Function to show usage
@@ -103,8 +98,8 @@ DATE_COVER=$(date "+%d %B %Y")
 TEMP_DIR=$(mktemp -d)
 trap "rm -rf '$TEMP_DIR'" EXIT
 
-# Create embedded templates
-create_templates "$TEMP_DIR"
+# Create embedded template
+create_template "$TEMP_DIR"
 
 # Build pandoc command using templates from temp directory
 PANDOC_CMD=(
@@ -115,7 +110,7 @@ PANDOC_CMD=(
     --toc
     --listings
     --shift-heading-level=0
-    --template "$TEMP_DIR/default_mod.latex"
+    --template "$TEMP_DIR/merged_template.latex"
     --pdf-engine "$PDF_ENGINE"
     -f "$SOURCE_FORMAT"
     -M "date=$DATE_COVER"
@@ -126,8 +121,7 @@ PANDOC_CMD=(
     -o "$OUTPUT_FILE"
 )
 
-# Always use enhanced preamble styling
-PANDOC_CMD+=(-H "$TEMP_DIR/preamble.tex")
+# Enhanced styling is now integrated into the template
 
 # Execute pandoc command
 echo "Generating PDF: $OUTPUT_FILE"

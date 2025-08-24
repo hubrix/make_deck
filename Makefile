@@ -40,5 +40,5 @@ open:
 bootstrap-macos:
 	bash scripts/bootstrap-macos.sh
 
-make_deck: pandoc/templates/default_mod.latex pandoc/templates/preamble.tex make_deck.template.sh build_make_deck.py
+make_deck: pandoc/templates/merged_template.latex make_deck.template.sh build_make_deck.py
 	@python3 build_make_deck.py
