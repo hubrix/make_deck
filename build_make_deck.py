@@ -15,9 +15,14 @@ def main():
     # Read the simple beamer LaTeX template
     with open('pandoc/templates/simple_beamer.latex', 'r') as f:
         simple_template = f.read()
-    
-    # Replace placeholder
+
+    # Read the PPTX theme extractor script
+    with open('scripts/extract_pptx_theme.py', 'r') as f:
+        extractor_content = f.read()
+
+    # Replace placeholders
     result = template_content.replace('__SIMPLE_BEAMER_CONTENT__', simple_template)
+    result = result.replace('__EXTRACT_PPTX_THEME_CONTENT__', extractor_content)
     
     # Write to make_deck
     with open('make_deck.new', 'w') as f:

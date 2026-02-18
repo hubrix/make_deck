@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 # make_deck - A truly standalone pandoc beamer presentation generator
-# Usage: make_deck input.md output.pdf
+# Usage: make_deck input.md output.pdf [--theme THEME] [--theme-file NAME]
+#        make_deck --import-theme template.pptx [--name mytheme]
 
 set -e
 
@@ -16,26 +17,41 @@ command_exists() {
 # Function to create embedded template file
 create_template() {
     local temp_dir="$1"
-    
+
     # Create the simple beamer template
     cat > "$temp_dir/simple_beamer.latex" << 'TEMPLATE_EOF'
 __SIMPLE_BEAMER_CONTENT__
 TEMPLATE_EOF
 }
 
+# Function to create embedded Python extractor
+create_extractor() {
+    local temp_dir="$1"
+
+    cat > "$temp_dir/extract_pptx_theme.py" << 'EXTRACTOR_EOF'
+__EXTRACT_PPTX_THEME_CONTENT__
+EXTRACTOR_EOF
+}
+
 # Function to show usage
 show_usage() {
     cat << EOF
-Usage: make_deck input.md output.pdf [--theme THEME]
+Usage: make_deck input.md output.pdf [OPTIONS]
+       make_deck --import-theme template.pptx [--name mytheme]
 
 A portable pandoc beamer presentation generator.
 
-Arguments:
-  input.md     Input Markdown file
-  output.pdf   Output PDF file
-  --theme      Beamer theme name (optional, default: default)
+Build mode:
+  input.md         Input Markdown file
+  output.pdf       Output PDF file
+  --theme THEME    Beamer theme name (default: default)
+  --theme-file NAME  Apply a saved color theme from ~/.make_deck/themes/
 
-Available themes:
+Import mode:
+  --import-theme FILE  Extract colors/fonts from a .pptx file
+  --name NAME          Theme name (default: derived from filename)
+
+Available beamer themes:
   AnnArbor, Antibes, Bergen, Berkeley, Berlin, Boadilla, CambridgeUS,
   Copenhagen, Darmstadt, Dresden, Frankfurt, Goettingen, Hannover,
   Ilmenau, JuanLesPins, Luebeck, Madrid, Malmoe, Marburg, Montpellier,
@@ -44,41 +60,126 @@ Available themes:
 Examples:
   make_deck presentation.md presentation.pdf
   make_deck slides.md slides.pdf --theme Copenhagen
-  make_deck slides.md slides.pdf --theme Madrid
+  make_deck --import-theme corporate.pptx --name corporate
+  make_deck slides.md slides.pdf --theme-file corporate
 
 Requirements:
   - pandoc
+  - python3 (for --import-theme only)
   - One of: tectonic, lualatex, xelatex
 EOF
 }
 
-# Check for help flag
+# ── Argument parsing ──────────────────────────────────────────────
+
+# Check for help flag early
 if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
     show_usage
     exit 0
 fi
 
-# Validate arguments
-if [ $# -lt 2 ] || [ $# -gt 4 ]; then
-    echo "Error: Invalid number of arguments." >&2
-    show_usage >&2
-    exit 1
-fi
+# Detect mode: import or build
+MODE="build"
+IMPORT_FILE=""
+THEME_NAME=""
+INPUT_FILE=""
+OUTPUT_FILE=""
+THEME="default"
+THEME_FILE=""
 
-INPUT_FILE="$1"
-OUTPUT_FILE="$2"
-THEME="default"  # Default theme (PowerPoint-style)
-
-# Parse optional theme argument
-if [ $# -eq 4 ]; then
-    if [ "$3" = "--theme" ]; then
-        THEME="$4"
-    else
-        echo "Error: Unknown option '$3'" >&2
+if [ "$1" = "--import-theme" ]; then
+    MODE="import"
+    shift
+    IMPORT_FILE="$1"
+    shift || true
+    # Parse remaining import-mode flags
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --name)
+                THEME_NAME="$2"
+                shift 2
+                ;;
+            *)
+                echo "Error: Unknown option '$1' in import mode" >&2
+                show_usage >&2
+                exit 1
+                ;;
+        esac
+    done
+else
+    # Build mode: first two positional args are input and output
+    if [ $# -lt 2 ]; then
+        echo "Error: Missing required arguments." >&2
         show_usage >&2
         exit 1
     fi
+    INPUT_FILE="$1"
+    OUTPUT_FILE="$2"
+    shift 2
+    # Parse remaining build-mode flags
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --theme)
+                THEME="$2"
+                shift 2
+                ;;
+            --theme-file)
+                THEME_FILE="$2"
+                shift 2
+                ;;
+            *)
+                echo "Error: Unknown option '$1'" >&2
+                show_usage >&2
+                exit 1
+                ;;
+        esac
+    done
 fi
+
+# ── Import mode ───────────────────────────────────────────────────
+
+if [ "$MODE" = "import" ]; then
+    if [ -z "$IMPORT_FILE" ]; then
+        echo "Error: No .pptx file specified." >&2
+        show_usage >&2
+        exit 1
+    fi
+
+    if [ ! -f "$IMPORT_FILE" ]; then
+        echo "Error: File not found: $IMPORT_FILE" >&2
+        exit 1
+    fi
+
+    if ! command_exists python3; then
+        echo "Error: python3 is required for --import-theme." >&2
+        exit 1
+    fi
+
+    # Derive theme name from filename if not provided
+    if [ -z "$THEME_NAME" ]; then
+        THEME_NAME=$(basename "$IMPORT_FILE" .pptx)
+        # Lowercase and replace non-alnum with underscores
+        THEME_NAME=$(echo "$THEME_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/_/g' | sed 's/__*/_/g' | sed 's/^_//;s/_$//')
+    fi
+
+    THEMES_DIR="$HOME/.make_deck/themes"
+    mkdir -p "$THEMES_DIR"
+
+    # Write embedded extractor to temp file
+    TEMP_DIR=$(mktemp -d)
+    trap "rm -rf '$TEMP_DIR'" EXIT
+    create_extractor "$TEMP_DIR"
+
+    OUTPUT_PATH=$(python3 "$TEMP_DIR/extract_pptx_theme.py" "$IMPORT_FILE" --name "$THEME_NAME" --output-dir "$THEMES_DIR")
+
+    echo "Theme extracted: $OUTPUT_PATH"
+    echo ""
+    echo "Use it with:"
+    echo "  make_deck slides.md slides.pdf --theme-file $THEME_NAME"
+    exit 0
+fi
+
+# ── Build mode ────────────────────────────────────────────────────
 
 # Validate input file
 if [ ! -f "$INPUT_FILE" ]; then
@@ -142,7 +243,16 @@ PANDOC_CMD=(
     -o "$OUTPUT_FILE"
 )
 
-# Enhanced styling is now integrated into the template
+# Apply custom theme file if specified
+if [ -n "$THEME_FILE" ]; then
+    RESOLVED_THEME_FILE="$HOME/.make_deck/themes/$THEME_FILE.latex"
+    if [ ! -f "$RESOLVED_THEME_FILE" ]; then
+        echo "Error: Theme file not found: $RESOLVED_THEME_FILE" >&2
+        echo "Import a theme first with: make_deck --import-theme template.pptx --name $THEME_FILE" >&2
+        exit 1
+    fi
+    PANDOC_CMD+=(-H "$RESOLVED_THEME_FILE")
+fi
 
 # Execute pandoc command
 echo "Generating PDF: $OUTPUT_FILE"
