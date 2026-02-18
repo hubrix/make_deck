@@ -67,7 +67,7 @@ $endif$
 $if(theme)$
 \usetheme[$for(themeoptions)$$themeoptions$$sep$,$endfor$]{$theme$}
 $else$
-\usetheme{Frankfurt}  % Default theme if none specified
+\usetheme{default}  % Default theme if none specified
 $endif$
 
 $if(colortheme)$
@@ -87,8 +87,98 @@ $if(outertheme)$
 $endif$
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% MINIMAL CUSTOMIZATIONS
-% Only essential fixes and improvements
+% POWERPOINT-STYLE CUSTOMIZATIONS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% --- Color scheme ---
+\definecolor{pptPrimary}{RGB}{31,78,121}      % Dark corporate blue
+\definecolor{pptAccent}{RGB}{68,114,196}       % Lighter blue for highlights
+\definecolor{pptLightGray}{RGB}{242,242,242}   % Block backgrounds
+\definecolor{pptDarkText}{RGB}{51,51,51}       % Near-black body text
+\definecolor{pptMidGray}{RGB}{140,140,140}     % Subtitle/secondary text
+
+\setbeamercolor{normal text}{fg=pptDarkText}
+\setbeamercolor{structure}{fg=pptPrimary}
+\setbeamercolor{alerted text}{fg=pptAccent}
+\setbeamercolor{frametitle}{fg=pptPrimary,bg=}
+\setbeamercolor{title}{fg=pptPrimary}
+\setbeamercolor{subtitle}{fg=pptMidGray}
+\setbeamercolor{author}{fg=pptDarkText}
+\setbeamercolor{date}{fg=pptMidGray}
+\setbeamercolor{institute}{fg=pptMidGray}
+\setbeamercolor{item}{fg=pptPrimary}
+\setbeamercolor{footline}{fg=pptMidGray,bg=white}
+
+% --- Remove navigation chrome ---
+\setbeamertemplate{headline}{}        % No header/navigation bar
+\setbeamertemplate{navigation symbols}{}
+
+% Minimal footline: just slide number, right-aligned
+\setbeamertemplate{footline}{%
+  \hfill%
+  \usebeamercolor[fg]{footline}%
+  \usebeamerfont{footline}%
+  \insertframenumber\kern1.5em\vskip6pt%
+}
+\setbeamerfont{footline}{size=\scriptsize}
+
+% --- Clean frame titles with accent underline ---
+\setbeamerfont{frametitle}{size=\large,series=\bfseries}
+\setbeamertemplate{frametitle}{%
+  \vskip6pt%
+  \usebeamerfont{frametitle}\usebeamercolor[fg]{frametitle}\insertframetitle%
+  \vskip2pt%
+  {\color{pptAccent}\rule{\textwidth}{0.8pt}}%
+  \vskip4pt%
+}
+
+% --- PowerPoint-style title slide ---
+\defbeamertemplate*{title page}{ppt}{%
+  \vfill
+  \begin{center}
+    {\usebeamerfont{title}\usebeamercolor[fg]{title}\inserttitle\par}%
+    \ifx\insertsubtitle\@empty\else
+      \vskip8pt%
+      {\usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}\insertsubtitle\par}%
+    \fi
+    \vskip20pt%
+    {\color{pptAccent}\rule{0.4\textwidth}{1pt}\par}%
+    \vskip20pt%
+    {\usebeamerfont{author}\usebeamercolor[fg]{author}\insertauthor\par}%
+    \ifx\insertinstitute\@empty\else
+      \vskip4pt%
+      {\usebeamerfont{institute}\usebeamercolor[fg]{institute}\insertinstitute\par}%
+    \fi
+    \vskip8pt%
+    {\usebeamerfont{date}\usebeamercolor[fg]{date}\insertdate\par}%
+  \end{center}
+  \vfill
+}
+\setbeamerfont{title}{size=\LARGE,series=\bfseries}
+\setbeamerfont{subtitle}{size=\large}
+\setbeamerfont{author}{size=\normalsize}
+\setbeamerfont{institute}{size=\small}
+\setbeamerfont{date}{size=\small}
+
+% --- Clean bullet points ---
+\setbeamertemplate{itemize item}{\textbullet}
+\setbeamertemplate{itemize subitem}{\textendash}
+\setbeamertemplate{itemize subsubitem}{\raise0.5pt\hbox{\scalebox{0.6}{\textbullet}}}
+
+% --- Softer blocks ---
+\setbeamercolor{block title}{fg=pptPrimary,bg=}
+\setbeamercolor{block body}{fg=pptDarkText,bg=pptLightGray}
+\setbeamerfont{block title}{series=\bfseries}
+\setbeamertemplate{blocks}[default]
+
+\setbeamercolor{block title alerted}{fg=pptAccent,bg=}
+\setbeamercolor{block body alerted}{fg=pptDarkText,bg=pptLightGray}
+\setbeamercolor{block title example}{fg=pptPrimary,bg=}
+\setbeamercolor{block body example}{fg=pptDarkText,bg=pptLightGray}
+
+% --- More whitespace ---
+\setbeamersize{text margin left=1.2cm,text margin right=1.2cm}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Fix strikeout compatibility
@@ -298,6 +388,8 @@ $if(beamer)$
 \makeatletter
 \def\fnum@table{\tablename~\thetable}
 \makeatother
+% Define dummy 'none' counter for newer pandoc longtable output
+\newcounter{none}
 $else$
 % Correct order of tables after \paragraph or \subparagraph
 \usepackage{etoolbox}
@@ -331,6 +423,8 @@ $endif$
 \setlength{\emergencystretch}{3em} % prevent overfull lines
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+% Compatibility with newer pandoc versions
+\providecommand{\pandocbounded}[1]{#1}
 $if(numbersections)$
 \setcounter{secnumdepth}{$if(secnumdepth)$$secnumdepth$$else$5$endif$}
 $else$
@@ -354,13 +448,31 @@ $endif$
 \item\relax\color{blockquote-text}\ignorespaces}{\unskip\unskip\endlist\end{customblockquote}}
 
 %
-% Source Sans Pro as the default font family
+% Font configuration: Inter (PowerPoint-like) with Source Sans Pro fallback
 % Source Code Pro for monospace text
 %
 $if(mainfont)$
 $else$
-\usepackage[default]{sourcesanspro}
 \usepackage{sourcecodepro}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0
+  % pdftex: use Source Sans Pro as fallback
+  \usepackage[default]{sourcesanspro}
+\else
+  % xetex/luatex: try Inter, fall back to Source Sans Pro
+  \IfFontExistsTF{Inter}{%
+    \setsansfont[
+      BoldFont={* Bold},
+      ItalicFont={* Italic},
+      BoldItalicFont={* Bold Italic}
+    ]{Inter}%
+  }{%
+    \IfFontExistsTF{Source Sans Pro}{%
+      \setsansfont{Source Sans Pro}%
+    }{%
+      % lmodern fallback (already loaded)
+    }%
+  }%
+\fi
 
 % XeLaTeX specific adjustments for straight quotes
 \ifxetex

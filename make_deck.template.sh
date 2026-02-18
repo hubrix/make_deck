@@ -33,7 +33,7 @@ A portable pandoc beamer presentation generator.
 Arguments:
   input.md     Input Markdown file
   output.pdf   Output PDF file
-  --theme      Beamer theme name (optional, default: Frankfurt)
+  --theme      Beamer theme name (optional, default: default)
 
 Available themes:
   AnnArbor, Antibes, Bergen, Berkeley, Berlin, Boadilla, CambridgeUS,
@@ -67,7 +67,7 @@ fi
 
 INPUT_FILE="$1"
 OUTPUT_FILE="$2"
-THEME="Frankfurt"  # Default theme
+THEME="default"  # Default theme (PowerPoint-style)
 
 # Parse optional theme argument
 if [ $# -eq 4 ]; then

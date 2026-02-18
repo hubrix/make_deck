@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # make_deck - A truly standalone pandoc beamer presentation generator
-# Usage: make_deck input.md output.pdf [--preamble]
+# Usage: make_deck input.md output.pdf
 
 set -e
 
@@ -13,12 +13,12 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-# Function to create embedded template files
-create_templates() {
+# Function to create embedded template file
+create_template() {
     local temp_dir="$1"
     
-    # Create the default_mod.latex template
-    cat > "$temp_dir/default_mod.latex" << 'TEMPLATE_EOF'
+    # Create the simple beamer template
+    cat > "$temp_dir/simple_beamer.latex" << 'TEMPLATE_EOF'
 % Options for packages loaded elsewhere
 \PassOptionsToPackage{unicode$for(hyperrefoptions)$,$hyperrefoptions$$endfor$}{hyperref}
 \PassOptionsToPackage{hyphens}{url}
@@ -54,6 +54,7 @@ $for(classoption)$
   $classoption$$sep$,
 $endfor$
 ]{$documentclass$}
+
 $if(beamer)$
 $if(background-image)$
 \usebackgroundtemplate{%
@@ -66,13 +67,151 @@ $endif$
 \setbeamercolor{caption name}{fg=normal text.fg}
 \beamertemplatenavigationsymbols$if(navigation)$$navigation$$else$empty$endif$
 
-%%
-%%% Definition of colors
-%%% Source: https://latexcolor.com/
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% BEAMER THEME SELECTION
+%
+% Available built-in themes (27 total):
+% AnnArbor, Antibes, Bergen, Berkeley, Berlin, Boadilla, CambridgeUS,
+% Copenhagen, Darmstadt, Dresden, Frankfurt, Goettingen, Hannover, 
+% Ilmenau, JuanLesPins, Luebeck, Madrid, Malmoe, Marburg, Montpellier,
+% PaloAlto, Pittsburgh, Rochester, Singapore, Szeged, Warsaw, boxes, default
+%
+% Popular choices:
+% - Frankfurt: Clean with navigation dots
+% - Madrid: Simple and professional
+% - Copenhagen: Modern blue theme
+% - Berlin: Classic academic look
+% - Boadilla: Minimal and elegant
+% - CambridgeUS: Traditional university style
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+$if(theme)$
+\usetheme[$for(themeoptions)$$themeoptions$$sep$,$endfor$]{$theme$}
+$else$
+\usetheme{default}  % Default theme if none specified
+$endif$
+
+$if(colortheme)$
+\usecolortheme{$colortheme$}
+$endif$
+$if(fonttheme)$
+\usefonttheme{$fonttheme$}
+$endif$
+$if(mainfont)$
+\usefonttheme{serif} % use mainfont rather than sansfont for slide text
+$endif$
+$if(innertheme)$
+\useinnertheme{$innertheme$}
+$endif$
+$if(outertheme)$
+\useoutertheme{$outertheme$}
+$endif$
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% POWERPOINT-STYLE CUSTOMIZATIONS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% --- Color scheme ---
+\definecolor{pptPrimary}{RGB}{31,78,121}      % Dark corporate blue
+\definecolor{pptAccent}{RGB}{68,114,196}       % Lighter blue for highlights
+\definecolor{pptLightGray}{RGB}{242,242,242}   % Block backgrounds
+\definecolor{pptDarkText}{RGB}{51,51,51}       % Near-black body text
+\definecolor{pptMidGray}{RGB}{140,140,140}     % Subtitle/secondary text
+
+\setbeamercolor{normal text}{fg=pptDarkText}
+\setbeamercolor{structure}{fg=pptPrimary}
+\setbeamercolor{alerted text}{fg=pptAccent}
+\setbeamercolor{frametitle}{fg=pptPrimary,bg=}
+\setbeamercolor{title}{fg=pptPrimary}
+\setbeamercolor{subtitle}{fg=pptMidGray}
+\setbeamercolor{author}{fg=pptDarkText}
+\setbeamercolor{date}{fg=pptMidGray}
+\setbeamercolor{institute}{fg=pptMidGray}
+\setbeamercolor{item}{fg=pptPrimary}
+\setbeamercolor{footline}{fg=pptMidGray,bg=white}
+
+% --- Remove navigation chrome ---
+\setbeamertemplate{headline}{}        % No header/navigation bar
+\setbeamertemplate{navigation symbols}{}
+
+% Minimal footline: just slide number, right-aligned
+\setbeamertemplate{footline}{%
+  \hfill%
+  \usebeamercolor[fg]{footline}%
+  \usebeamerfont{footline}%
+  \insertframenumber\kern1.5em\vskip6pt%
+}
+\setbeamerfont{footline}{size=\scriptsize}
+
+% --- Clean frame titles with accent underline ---
+\setbeamerfont{frametitle}{size=\large,series=\bfseries}
+\setbeamertemplate{frametitle}{%
+  \vskip6pt%
+  \usebeamerfont{frametitle}\usebeamercolor[fg]{frametitle}\insertframetitle%
+  \vskip2pt%
+  {\color{pptAccent}\rule{\textwidth}{0.8pt}}%
+  \vskip4pt%
+}
+
+% --- PowerPoint-style title slide ---
+\defbeamertemplate*{title page}{ppt}{%
+  \vfill
+  \begin{center}
+    {\usebeamerfont{title}\usebeamercolor[fg]{title}\inserttitle\par}%
+    \ifx\insertsubtitle\@empty\else
+      \vskip8pt%
+      {\usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}\insertsubtitle\par}%
+    \fi
+    \vskip20pt%
+    {\color{pptAccent}\rule{0.4\textwidth}{1pt}\par}%
+    \vskip20pt%
+    {\usebeamerfont{author}\usebeamercolor[fg]{author}\insertauthor\par}%
+    \ifx\insertinstitute\@empty\else
+      \vskip4pt%
+      {\usebeamerfont{institute}\usebeamercolor[fg]{institute}\insertinstitute\par}%
+    \fi
+    \vskip8pt%
+    {\usebeamerfont{date}\usebeamercolor[fg]{date}\insertdate\par}%
+  \end{center}
+  \vfill
+}
+\setbeamerfont{title}{size=\LARGE,series=\bfseries}
+\setbeamerfont{subtitle}{size=\large}
+\setbeamerfont{author}{size=\normalsize}
+\setbeamerfont{institute}{size=\small}
+\setbeamerfont{date}{size=\small}
+
+% --- Clean bullet points ---
+\setbeamertemplate{itemize item}{\textbullet}
+\setbeamertemplate{itemize subitem}{\textendash}
+\setbeamertemplate{itemize subsubitem}{\raise0.5pt\hbox{\scalebox{0.6}{\textbullet}}}
+
+% --- Softer blocks ---
+\setbeamercolor{block title}{fg=pptPrimary,bg=}
+\setbeamercolor{block body}{fg=pptDarkText,bg=pptLightGray}
+\setbeamerfont{block title}{series=\bfseries}
+\setbeamertemplate{blocks}[default]
+
+\setbeamercolor{block title alerted}{fg=pptAccent,bg=}
+\setbeamercolor{block body alerted}{fg=pptDarkText,bg=pptLightGray}
+\setbeamercolor{block title example}{fg=pptPrimary,bg=}
+\setbeamercolor{block body example}{fg=pptDarkText,bg=pptLightGray}
+
+% --- More whitespace ---
+\setbeamersize{text margin left=1.2cm,text margin right=1.2cm}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Fix strikeout compatibility
+$if(strikeout)$
+\usepackage[normalem]{ulem}
+\newcommand{\st}[1]{\sout{#1}}
+\pdfstringdefDisableCommands{\renewcommand{\sout}{}}
+$endif$
+
+% Code listing colors for better readability
 \definecolor{blanchedalmond}{rgb}{1.0, 0.92, 0.8}
 \definecolor{blond}{rgb}{0.98, 0.94, 0.75}
-%%% End of definition of colors
-%%
 
 $for(beameroption)$
 \setbeameroption{$beameroption$}
@@ -183,26 +322,6 @@ $if(CJKmainfont)$
   \fi
 $endif$
 \fi
-$if(beamer)$
-$if(theme)$
-\usetheme[$for(themeoptions)$$themeoptions$$sep$,$endfor$]{$theme$}
-$endif$
-$if(colortheme)$
-\usecolortheme{$colortheme$}
-$endif$
-$if(fonttheme)$
-\usefonttheme{$fonttheme$}
-$endif$
-$if(mainfont)$
-\usefonttheme{serif} % use mainfont rather than sansfont for slide text
-$endif$
-$if(innertheme)$
-\useinnertheme{$innertheme$}
-$endif$
-$if(outertheme)$
-\useoutertheme{$outertheme$}
-$endif$
-$endif$
 % Use upquote if available, for straight quotes in verbatim environments
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \IfFileExists{microtype.sty}{% use microtype if available
@@ -274,8 +393,6 @@ $if(listings)$
 \lstset{defaultdialect=sh}
 \lstset{framexleftmargin=0mm, frame=trBL,backgroundcolor=\color{blanchedalmond!5},numbers=left,numberstyle=\scriptsize,basicstyle=\small}
 \lstset{aboveskip=5mm,belowskip=5mm,xleftmargin=20pt,xrightmargin=5pt}
-% \lstset{prebreak={\raisebox{0ex}[0ex][0ex]}}
-% \lstset{postbreak={\raisebox{0ex}[0ex][0ex]\space}}
 \lstset{breaklines=true,breakatwhitespace=true}
 $endif$
 $if(lhs)$
@@ -292,6 +409,8 @@ $if(beamer)$
 \makeatletter
 \def\fnum@table{\tablename~\thetable}
 \makeatother
+% Define dummy 'none' counter for newer pandoc longtable output
+\newcounter{none}
 $else$
 % Correct order of tables after \paragraph or \subparagraph
 \usepackage{etoolbox}
@@ -322,16 +441,11 @@ $if(links-as-notes)$
 % Make links footnotes instead of hotlinks:
 \DeclareRobustCommand{\href}[2]{#2\footnote{\url{#1}}}
 $endif$
-$if(strikeout)$
-\usepackage[normalem]{ulem}
-% Define \st as alias for \sout for pandoc compatibility
-\newcommand{\st}[1]{\sout{#1}}
-% Avoid problems with \sout in headers with hyperref
-\pdfstringdefDisableCommands{\renewcommand{\sout}{}}
-$endif$
 \setlength{\emergencystretch}{3em} % prevent overfull lines
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+% Compatibility with newer pandoc versions
+\providecommand{\pandocbounded}[1]{#1}
 $if(numbersections)$
 \setcounter{secnumdepth}{$if(secnumdepth)$$secnumdepth$$else$5$endif$}
 $else$
@@ -355,21 +469,33 @@ $endif$
 \item\relax\color{blockquote-text}\ignorespaces}{\unskip\unskip\endlist\end{customblockquote}}
 
 %
-% Source Sans Pro as the de­fault font fam­ily
+% Font configuration: Inter (PowerPoint-like) with Source Sans Pro fallback
 % Source Code Pro for monospace text
-%
-% 'default' option sets the default 
-% font family to Source Sans Pro, not \sfdefault.
 %
 $if(mainfont)$
 $else$
-\usepackage[default]{sourcesanspro}
 \usepackage{sourcecodepro}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0
+  % pdftex: use Source Sans Pro as fallback
+  \usepackage[default]{sourcesanspro}
+\else
+  % xetex/luatex: try Inter, fall back to Source Sans Pro
+  \IfFontExistsTF{Inter}{%
+    \setsansfont[
+      BoldFont={* Bold},
+      ItalicFont={* Italic},
+      BoldItalicFont={* Bold Italic}
+    ]{Inter}%
+  }{%
+    \IfFontExistsTF{Source Sans Pro}{%
+      \setsansfont{Source Sans Pro}%
+    }{%
+      % lmodern fallback (already loaded)
+    }%
+  }%
+\fi
 
-% XeLaTeX specific adjustments for straight quotes: https://tex.stackexchange.com/a/354887
-% This issue is already fixed (see https://github.com/silkeh/latex-sourcecodepro/pull/5) but the 
-% fix is still unreleased.
-% TODO: Remove this workaround when the new version of sourcecodepro is reelased on CTAN.
+% XeLaTeX specific adjustments for straight quotes
 \ifxetex
 \makeatletter
 \defaultfontfeatures[\ttfamily]
@@ -571,98 +697,31 @@ $include-after$
 
 $endfor$
 \end{document}
-
 TEMPLATE_EOF
-
-    # Create the preamble.tex file
-    cat > "$temp_dir/preamble.tex" << 'PREAMBLE_EOF'
-%%%%%%%%%%%%%color 
-\definecolor{UBCblue}{rgb}{0.04706, 0.13725, 0.26667} % UBC Blue (primary)
-\definecolor{UBCgrey}{rgb}{0.3686, 0.5255, 0.6235} % UBC Grey (secondary)
-
-\definecolor{orange}{RGB}{244,167,66}
-
-\setbeamercolor{palette primary}{bg=UBCblue,fg=white}
-\setbeamercolor{palette secondary}{bg=UBCblue,fg=white}
-\setbeamercolor{palette tertiary}{bg=UBCblue,fg=white}
-\setbeamercolor{palette quaternary}{bg=UBCblue,fg=white}
-\setbeamercolor{structure}{fg=UBCblue} % itemize, enumerate, etc
-\setbeamercolor{section in toc}{fg=UBCblue} % TOC sections
-
-%% change circle miniframes color
-\setbeamercolor{mini frame}{fg=orange, bg=UBCblue}
-
-%% Change subsection in footer color (author and institute color)
-\setbeamercolor{subsection in head/foot}{bg=UBCgrey,fg=white}
-
-%change ilmenau section dot color 
-\setbeamercolor{section in head/foot}{fg=orange} 
-
-%% Change the circle in miniframes to a box
-%\setbeamertemplate{mini frame}[box]
-%\setbeamertemplate{mini frame in current subsection}[box]
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% Create framenumber in footer
-\newcommand{\frameofframes}{/}
-\newcommand{\setframeofframes}[1]{\renewcommand{\frameofframes}{#1}}
-
-\setframeofframes{of}
-\makeatletter
-\setbeamertemplate{footline}
-  {%
-    \begin{beamercolorbox}[colsep=1.5pt]{upper separation line foot}
-    \end{beamercolorbox}
-    \begin{beamercolorbox}[ht=2.5ex,dp=1.125ex,%
-      leftskip=.3cm,rightskip=.3cm plus1fil]{author in head/foot}%
-      \leavevmode{\usebeamerfont{author in head/foot}\insertshortauthor}%
-      \hfill%
-      {\usebeamerfont{institute in head/foot}\usebeamercolor[fg]{institute in head/foot}\insertshortinstitute}%
-    \end{beamercolorbox}%
-    \begin{beamercolorbox}[ht=2.5ex,dp=1.125ex,%
-      leftskip=.3cm,rightskip=.3cm plus1fil]{title in head/foot}%
-      {\usebeamerfont{title in head/foot}\insertshorttitle}%
-      \hfill%
-      {\usebeamerfont{frame number}\usebeamercolor[fg]{frame number}\insertframenumber~\frameofframes~\inserttotalframenumber}
-    \end{beamercolorbox}%
-    \begin{beamercolorbox}[colsep=1.5pt]{lower separation line foot}
-    \end{beamercolorbox}
-  }
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Remove subsection bar in mini frames
-\defbeamertemplate*{headline}{miniframes theme no subsection}
-{%
-  \begin{beamercolorbox}[colsep=1.5pt]{upper separation line head}
-  \end{beamercolorbox}
-  \begin{beamercolorbox}{section in head/foot}
-    \vskip2pt\insertnavigation{\paperwidth}\vskip2pt
-  \end{beamercolorbox}%
-  \begin{beamercolorbox}[colsep=1.5pt]{lower separation line head}
-  \end{beamercolorbox}
-}
-
-\setbeamertemplate{footline}[miniframes theme no subsection]
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\makeatother
-
-PREAMBLE_EOF
 }
 
 # Function to show usage
 show_usage() {
     cat << EOF
-Usage: make_deck input.md output.pdf [--preamble]
+Usage: make_deck input.md output.pdf [--theme THEME]
 
 A portable pandoc beamer presentation generator.
 
 Arguments:
   input.md     Input Markdown file
   output.pdf   Output PDF file
-  --preamble   Use enhanced styling with preamble.tex
+  --theme      Beamer theme name (optional, default: default)
+
+Available themes:
+  AnnArbor, Antibes, Bergen, Berkeley, Berlin, Boadilla, CambridgeUS,
+  Copenhagen, Darmstadt, Dresden, Frankfurt, Goettingen, Hannover,
+  Ilmenau, JuanLesPins, Luebeck, Madrid, Malmoe, Marburg, Montpellier,
+  PaloAlto, Pittsburgh, Rochester, Singapore, Szeged, Warsaw, boxes, default
 
 Examples:
   make_deck presentation.md presentation.pdf
-  make_deck slides.md slides.pdf --preamble
+  make_deck slides.md slides.pdf --theme Copenhagen
+  make_deck slides.md slides.pdf --theme Madrid
 
 Requirements:
   - pandoc
@@ -677,7 +736,7 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 fi
 
 # Validate arguments
-if [ $# -lt 2 ] || [ $# -gt 3 ]; then
+if [ $# -lt 2 ] || [ $# -gt 4 ]; then
     echo "Error: Invalid number of arguments." >&2
     show_usage >&2
     exit 1
@@ -685,11 +744,12 @@ fi
 
 INPUT_FILE="$1"
 OUTPUT_FILE="$2"
-USE_PREAMBLE=false
+THEME="default"  # Default theme (PowerPoint-style)
 
-if [ $# -eq 3 ]; then
-    if [ "$3" = "--preamble" ]; then
-        USE_PREAMBLE=true
+# Parse optional theme argument
+if [ $# -eq 4 ]; then
+    if [ "$3" = "--theme" ]; then
+        THEME="$4"
     else
         echo "Error: Unknown option '$3'" >&2
         show_usage >&2
@@ -735,8 +795,8 @@ DATE_COVER=$(date "+%d %B %Y")
 TEMP_DIR=$(mktemp -d)
 trap "rm -rf '$TEMP_DIR'" EXIT
 
-# Create embedded templates
-create_templates "$TEMP_DIR"
+# Create embedded template
+create_template "$TEMP_DIR"
 
 # Build pandoc command using templates from temp directory
 PANDOC_CMD=(
@@ -747,21 +807,19 @@ PANDOC_CMD=(
     --toc
     --listings
     --shift-heading-level=0
-    --template "$TEMP_DIR/default_mod.latex"
+    --template "$TEMP_DIR/simple_beamer.latex"
     --pdf-engine "$PDF_ENGINE"
     -f "$SOURCE_FORMAT"
     -M "date=$DATE_COVER"
     -V classoption:aspectratio=169
+    -V theme="$THEME"
     --highlight-style=tango
     -t beamer
     "$INPUT_FILE"
     -o "$OUTPUT_FILE"
 )
 
-# Add preamble if requested
-if [ "$USE_PREAMBLE" = true ]; then
-    PANDOC_CMD+=(-H "$TEMP_DIR/preamble.tex")
-fi
+# Enhanced styling is now integrated into the template
 
 # Execute pandoc command
 echo "Generating PDF: $OUTPUT_FILE"

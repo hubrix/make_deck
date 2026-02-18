@@ -3,10 +3,7 @@ title: "My wonderful presentation"
 author: "Alexey Gumirov"
 institute: "My home office"
 topic: "Pandoc how-to"
-theme: "Frankfurt"
-colortheme: "beaver"
 fonttheme: "professionalfonts"
-mainfont: "Hack Nerd Font"
 fontsize: 11pt
 urlcolor: red
 linkstyle: bold
